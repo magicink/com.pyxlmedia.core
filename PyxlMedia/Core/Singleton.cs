@@ -27,7 +27,7 @@ namespace PyxlMedia.Core
                         {
                             var singletonObject = new GameObject();
                             m_Instance = singletonObject.AddComponent<T>();
-                            singletonObject.name = $"{typeof(T)} (Singleton)"
+                            singletonObject.name = $"{typeof(T)} (Singleton)";
 
                             DontDestroyOnLoad(singletonObject);
                         }
