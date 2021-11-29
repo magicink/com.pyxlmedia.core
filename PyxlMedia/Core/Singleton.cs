@@ -2,29 +2,52 @@ using UnityEngine;
 
 namespace PyxlMedia.Core
 {
-    public abstract class Singleton<T> : MonoBehaviour where T: Singleton<T>
+    public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
     {
-        private static T _instance;
-        public T Instance { get => _instance; }
+        private static bool m_ShuttingDown = false;
+        private static object m_Lock = new object();
+        private static T m_Instance;
 
-        protected virtual void Awake()
+        public static T Instance
         {
-            if (_instance != null)
+            get
             {
-                Destroy(gameObject);
-            }
-            else
-            {
-                _instance = (T) this;
+                if (m_ShuttingDown)
+                {
+                    return null;
+                }
+
+                lock (m_Lock)
+                {
+                    if (m_Instance == null)
+                    {
+                        m_Instance = (T)FindObjectOfType(typeof(T));
+
+                        if (m_Instance == null)
+                        {
+                            var singletonObject = new GameObject();
+                            m_Instance = singletonObject.AddComponent<T>();
+                            singletonObject.name = $"{typeof(T)} (Singleton)"
+
+                            DontDestroyOnLoad(singletonObject);
+                        }
+                    }
+
+                    return m_Instance;
+                }
             }
         }
 
-        protected void OnDestroy()
+
+        private void OnApplicationQuit()
         {
-            if (_instance == this)
-            {
-                _instance = null;
-            }
+            m_ShuttingDown = true;
+        }
+
+
+        private void OnDestroy()
+        {
+            m_ShuttingDown = true;
         }
     }
 }
